@@ -8,7 +8,7 @@ using AlumnoEjemplos.MiGrupo;
 namespace AlumnoEjemplos.MiGrupo
 {
 
-    public class Skybox
+    public class SkyBox
     {
         public TgcSkyBox skybox;
         private float lastUpdate = 0;

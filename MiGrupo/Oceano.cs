@@ -11,11 +11,11 @@ using TgcViewer.Utils.TgcSceneLoader;
 
 namespace AlumnoEjemplos.MiGrupo
 {
-    class Agua
+    class Oceano
     {
         Vector2 center;
         VertexBuffer vertexBuffer;
-        List<CustomVertex.PositionColored> vertexList;
+        List<CustomVertex.PositionColored>[,] vertexList = new List<CustomVertex.PositionColored>[3, 3];
         int size;
         float radio;
         float cuadSize;
@@ -40,7 +40,7 @@ namespace AlumnoEjemplos.MiGrupo
         public const float freqMult = 100000;
         Wave[] waves = new Wave[num_waves];
 
-        public Agua(int size, int cuadSize, CubeTexture cubeMap)
+        public Oceano(int size, int cuadSize, CubeTexture cubeMap)
         {
             this.cubeMap = cubeMap;
             //{ 0.042, 20, 0.5, float2(1, 0) }
@@ -54,7 +54,7 @@ namespace AlumnoEjemplos.MiGrupo
             waves[1].phase = 0.25f;
             waves[1].dir = new Vector2(0.9f, 0.3f);
             //{ 0.25, 0.25, 4.5, float2(0, 1) }
-	        //{ 0.29, 0.25, 4.75, float2(1, 0) }
+            //{ 0.29, 0.25, 4.75, float2(1, 0) }
 
 
             //Modifiers
@@ -67,7 +67,7 @@ namespace AlumnoEjemplos.MiGrupo
             GuiController.Instance.Modifiers.addFloat("2) Amplitud", 0, 200, waves[1].amp);
             GuiController.Instance.Modifiers.addFloat("2) Frecuencia", 0, 1250, waves[1].freq * freqMult);
             GuiController.Instance.Modifiers.addFloat("2) Fase", 0, 3, waves[1].phase);
-            
+
             this.size = size;
             this.radio = size / 2;
             this.cuadSize = cuadSize;
@@ -79,23 +79,25 @@ namespace AlumnoEjemplos.MiGrupo
 
         private void createVertexBuffer(int size, int cuadSize)
         {
-            vertexList = new List<CustomVertex.PositionColored>();
-
+            List<CustomVertex.PositionColored> vertexListAll = new List<CustomVertex.PositionColored>();
             for (int x = -1; x <= 1; x++)
                 for (int z = -1; z <= 1; z++)
-                    if(x==0&&z==0)
-                        crearAgua(size, cuadSize, vertexList, new Vector2(x * size - radio, z * size - radio));
+                {
+                    vertexList[x + 1, z + 1] = new List<CustomVertex.PositionColored>();
+                    if (x == 0 && z == 0)
+                        crearAgua(size, cuadSize, vertexList[x + 1, z + 1], new Vector2(x * size - radio, z * size - radio));
                     else
-                        crearAgua(size, cuadSize * 2, vertexList, new Vector2(x * size -radio, z * size - radio));
+                        crearAgua(size, cuadSize * 2, vertexList[x + 1, z + 1], new Vector2(x * size - radio, z * size - radio));
+                    vertexListAll.AddRange(vertexList[x + 1, z + 1]);
+                }
 
-            //Almacenar información en VertexBuffer
-            vertexBuffer = new VertexBuffer(typeof(CustomVertex.PositionColored), vertexList.Count, d3dDevice, Usage.Dynamic | Usage.WriteOnly, CustomVertex.PositionColored.Format, Pool.Default);
-            vertexBuffer.SetData(vertexList.ToArray(), 0, LockFlags.None);
+            vertexBuffer = new VertexBuffer(typeof(CustomVertex.PositionColored), vertexListAll.Count, d3dDevice, Usage.Dynamic | Usage.WriteOnly, CustomVertex.PositionColored.Format, Pool.Default);
+            vertexBuffer.SetData(vertexListAll.ToArray(), 0, LockFlags.None);
         }
 
         private void crearAgua(int size, int cuadSize, List<CustomVertex.PositionColored> vertexList, Vector2 top_left)
         {
-            for (float x = top_left.X ; x <= top_left.X + size; x += cuadSize)
+            for (float x = top_left.X; x <= top_left.X + size; x += cuadSize)
             {
                 for (float z = top_left.Y; z <= top_left.Y + size; z += cuadSize)
                 {
@@ -132,18 +134,30 @@ namespace AlumnoEjemplos.MiGrupo
 
         public void moverAgua(int x, int z)
         {
+            List<CustomVertex.PositionColored> vertexListAll = new List<CustomVertex.PositionColored>();
+            for (int a = -1; a <= 1; a++)
+                for (int b = -1; b <= 1; b++)
+                {
+                    vertexList[a + 1, b + 1] = moverAguaV(x, z,  vertexList[a + 1, b + 1]);
+                    vertexListAll.AddRange(vertexList[a + 1, b + 1]);
+                }
+            vertexBuffer.Dispose();
+            vertexBuffer = new VertexBuffer(typeof(CustomVertex.PositionColored), vertexListAll.Count, d3dDevice, Usage.Dynamic | Usage.WriteOnly, CustomVertex.PositionColored.Format, Pool.Default);
+            vertexBuffer.SetData(vertexListAll.ToArray(), 0, LockFlags.None);
+        }
+
+        List<CustomVertex.PositionColored> moverAguaV(int x, int z, List<CustomVertex.PositionColored> vList)
+        {
             List<CustomVertex.PositionColored> tmpVertexList = new List<CustomVertex.PositionColored>();
-            foreach (CustomVertex.PositionColored v in vertexList)
+            foreach (CustomVertex.PositionColored v in vList)
             {
                 tmpVertexList.Add(new CustomVertex.PositionColored(v.X + radio * x, 0, v.Z + radio * z, color.ToArgb()));
             }
-            vertexBuffer.Dispose();
-            vertexList = tmpVertexList;
-            vertexBuffer = new VertexBuffer(typeof(CustomVertex.PositionColored), vertexList.Count, d3dDevice, Usage.Dynamic | Usage.WriteOnly, CustomVertex.PositionColored.Format, Pool.Default);
-            vertexBuffer.SetData(vertexList.ToArray(), 0, LockFlags.None);
+            vList.Clear();
+            return tmpVertexList;
         }
 
-        public void render(float elapsedTime)
+        public void render(float elapsedTime, Vector3 posBote)
         {
             Device d3dDevice = GuiController.Instance.D3dDevice;
 
@@ -156,6 +170,7 @@ namespace AlumnoEjemplos.MiGrupo
             this.effect.SetValue("timer", timer);
             Vector3 eyePosition = GuiController.Instance.CurrentCamera.getPosition();
             this.effect.SetValue("eyePosition", TgcParserUtils.vector3ToFloat4Array(eyePosition));
+            this.effect.SetValue("posBote", TgcParserUtils.vector3ToFloat3Array(posBote));
             this.effect.SetValue("texCubeMap", cubeMap);
             this.effect.SetValue("reflection", (float)GuiController.Instance.Modifiers.getValue("Reflexion"));
             //Olas+
@@ -216,8 +231,8 @@ namespace AlumnoEjemplos.MiGrupo
         public float altura(Vector2 pos)
         {
             float altura = 0;
-            foreach(Wave w in waves)
-                altura+= evaluateWave(w, pos);
+            foreach (Wave w in waves)
+                altura += evaluateWave(w, pos);
             return altura;
         }
 
@@ -241,7 +256,7 @@ namespace AlumnoEjemplos.MiGrupo
         {
             for (int x = 0; x < num_waves; x++)
             {
-                waves[x].dir = (Vector2)GuiController.Instance.Modifiers[(x+1).ToString() + ") Dirección"];
+                waves[x].dir = (Vector2)GuiController.Instance.Modifiers[(x + 1).ToString() + ") Dirección"];
                 waves[x].dir.Normalize();
                 waves[x].amp = (float)GuiController.Instance.Modifiers[(x + 1).ToString() + ") Amplitud"];
                 waves[x].freq = ((float)GuiController.Instance.Modifiers[(x + 1).ToString() + ") Frecuencia"]) / freqMult;

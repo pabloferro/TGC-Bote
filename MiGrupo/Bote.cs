@@ -20,10 +20,10 @@ namespace AlumnoEjemplos.MiGrupo
         private static float velocidad_actual;
         private static float velocidad_desplazamiento;
         private float velocidad_desplazamiento_maxima = 600f;
-        Agua agua;
+        Oceano agua;
         float largo, ancho, alto;
 
-        public Bote(Agua agua)
+        public Bote(Oceano agua)
         {
             this.agua = agua;
         }
@@ -49,17 +49,18 @@ namespace AlumnoEjemplos.MiGrupo
             alto = Math.Abs(BoundingBoxSize.Y);
             //Camara
             GuiController.Instance.ThirdPersonCamera.Enable = true;
-            GuiController.Instance.ThirdPersonCamera.setCamera(mesh_bote.Position, 200, -750);
+            GuiController.Instance.ThirdPersonCamera.setCamera(mesh_bote.Position, 250, -800);
         }
 
         public void render(float elapsedTime)
         {
-
             velocidad_rotacion = (float)GuiController.Instance.Modifiers.getValue("Velocidad Rotación");
             velocidad_desplazamiento_maxima = (float)GuiController.Instance.Modifiers.getValue("Velocidad Máxima");
             this.procesarInputs(elapsedTime);
+            Vector3 pos_ant = mesh_bote.Position;
+            mesh_bote.Position = new Vector3(0, pos_ant.Y, 0);
             mesh_bote.render();
-
+            mesh_bote.Position = pos_ant;
         }
 
         //Devuelve la diferencia de altura
@@ -126,7 +127,7 @@ namespace AlumnoEjemplos.MiGrupo
             velocidad_actual = Math.Min(Math.Max(0, velocidad_actual), velocidad_desplazamiento_maxima);
 
             if (diferencia > 10)
-                diferencia = 0.65f;
+                diferencia = 0.80f;
             else if (diferencia < -10)
                 diferencia = 1.2f;
             else
@@ -134,7 +135,7 @@ namespace AlumnoEjemplos.MiGrupo
 
             //Vector3 lastPos = mesh_bote.Position;
             mesh_bote.moveOrientedY(diferencia * velocidad_actual * elapsedTime);
-            GuiController.Instance.ThirdPersonCamera.Target = mesh_bote.Position;
+            GuiController.Instance.ThirdPersonCamera.Target = new Vector3(0, mesh_bote.Position.Y, 0);// mesh_bote.Position;
         }
 
         public static Matrix CalcularMatriz(Vector3 Pos, Vector3 Scale, Vector3 Dir)
@@ -168,8 +169,8 @@ namespace AlumnoEjemplos.MiGrupo
             Orientacion.M44 = 1;
             matWorld = matWorld * Orientacion;
 
-            // traslado
-            matWorld = matWorld * Matrix.Translation(Pos);
+            // traslado solo la altura
+            matWorld = matWorld * Matrix.Translation(0, Pos.Y, 0);
             return matWorld;
         }
 

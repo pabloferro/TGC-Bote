@@ -17,10 +17,9 @@ namespace AlumnoEjemplos.MiGrupo
     /// </summary>
     public class EjemploAlumno : TgcExample
     {
-
-        Agua agua;
+        Oceano agua;
         Bote bote;
-        Skybox skybox = new Skybox();
+        SkyBox skybox = new SkyBox();
         Lluvia lluvia = new Lluvia();
         bool lluvia_on = false;
 
@@ -47,20 +46,19 @@ namespace AlumnoEjemplos.MiGrupo
             cubeMap = TextureLoader.FromCubeFile(GuiController.Instance.D3dDevice, EjemploAlumno.media() + "Texturas\\Skybox\\Skybox.dds");
             GuiController.Instance.Modifiers.addBoolean("Lluvia", "Activar Lluvia", false);
             GuiController.Instance.Modifiers.addFloat("Reflexion", 0, 1, 0.2f);
-            agua = new Agua(2000, 25, cubeMap);
+            agua = new Oceano(2000, 25, cubeMap);
             bote = new Bote(agua);
             bote.init();
             lluvia.init();
-            skybox.init();
             Sonido.Init();
-
+            skybox.init();
         }
 
 
         public override void render(float elapsedTime)
         {
             Device d3dDevice = GuiController.Instance.D3dDevice;
-            agua.render(elapsedTime);
+            agua.render(elapsedTime, bote.getPos());
             bote.render(elapsedTime);
 
             if ((bool)GuiController.Instance.Modifiers.getValue("Lluvia") != lluvia_on)
@@ -74,7 +72,7 @@ namespace AlumnoEjemplos.MiGrupo
             if (lluvia_on)
                lluvia.render();
 
-            agua.updatePosition(new Vector2(bote.getPos().X, bote.getPos().Z));
+            //agua.updatePosition(new Vector2(bote.getPos().X, bote.getPos().Z));
         }
 
         public override void close()

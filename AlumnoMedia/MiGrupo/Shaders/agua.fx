@@ -18,6 +18,7 @@ float amp1, amp2, amp3, amp4;
 float phase1, phase2, phase3, phase4;
 float2 dir1, dir2, dir3, dir4;
 
+float3 posBote; //Posicion de la camara
 float4 eyePosition; //Posicion de la camara
 float timer;
 float reflection;
@@ -121,10 +122,15 @@ VS_OUTPUT VS_main (
 	VS_OUTPUT Out = (VS_OUTPUT)0;
 	loadWaves();
 
+	//Muevo siempre el océano a donde está el bote y dibujo el bote en el (0, 0, 0)
+	float2 posAgua = Position.xz + posBote.xz;
+	//Position.x+=poBote.x;
+	//Position.z+=posBote.z;
+
 	float ddx = 0.0, ddy = 0.0;
 	for(int i=0; i<NWAVES; i++) {
-		Position.y += evaluateWave(wave[i], Position.xz, timer);
-		float deriv = evaluateWaveDeriv(wave[i], Position.xz, timer);
+		Position.y += evaluateWave(wave[i], posAgua, timer);
+		float deriv = evaluateWaveDeriv(wave[i], posAgua, timer);
     	ddx += deriv * wave[i].dir.x;
     	ddy += deriv * wave[i].dir.y;		
     }
