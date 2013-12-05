@@ -174,7 +174,7 @@ float4 PS_main(VS_OUTPUT input) : COLOR
 	
 	//Obtener texel de CubeMap
 	float3 Nn = normalize(input.Norm);
-	float3 Vn = normalize(eyePosition.xyz - input.WorldPosition);
+	float3 Vn = normalize(input.WorldPosition - eyePosition.xyz);
 	float3 R1 = reflect(Vn,Nn);
     float4 reflectionColor = float4(texCUBE(cubeMap, R1).rgb, 1);
 	
