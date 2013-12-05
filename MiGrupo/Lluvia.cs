@@ -34,8 +34,8 @@ namespace AlumnoEjemplos.MiGrupo
             Posicion.Y += Utiles.fAleatorio(80, 85);
             foreach (var Emisor in Emisores)
             {
-                Posicion.X = LookAt.X + Utiles.fAleatorio(-250, 250);
-                Posicion.Z = LookAt.Z + Utiles.fAleatorio(-250, 250);
+                Posicion.X = LookAt.X + Utiles.fAleatorio(-500, 500);
+                Posicion.Z = LookAt.Z + Utiles.fAleatorio(-600, 500);
                 Emisor.Position = Posicion;
                 Emisor.render();
             }
