@@ -176,9 +176,9 @@ float4 PS_main(VS_OUTPUT input) : COLOR
 	float3 Nn = normalize(input.Norm);
 	float3 Vn = normalize(eyePosition.xyz - input.WorldPosition);
 	float3 R1 = reflect(Vn,Nn);
-    float4 reflectionColor = float4(texCUBE(cubeMap, R1).rgb, 1) * reflection;
+    float4 reflectionColor = float4(texCUBE(cubeMap, R1).rgb, 1);
 	
-    return saturate(input.Color + reflectionColor + specular * 0.5f);
+    return lerp(saturate(input.Color + specular * 0.5f), reflectionColor, reflection);
 }
 
 /*********************************************** Techniques ***************************************************/
